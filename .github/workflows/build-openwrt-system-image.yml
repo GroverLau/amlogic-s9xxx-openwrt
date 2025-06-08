@@ -362,7 +362,15 @@ jobs:
           echo -e "$(nproc) thread compile"
           make -j$(($(nproc) + 1)) V=s || make -j1 || make -j1 V=s
           echo "status=success" >> ${GITHUB_OUTPUT}
-
+          
+      - name: Upload Project Directory on Success
+        if: success() # 只有在前面所有步骤都成功时才执行
+        uses: actions/upload-artifact@v4
+        with:
+          name: openwrt-project-directory-${{ github.run_id }}
+          path: /builder/openwrt/
+          retention-days: 5
+          
       - name: Clear server space
         id: clean
         if: ${{ steps.compile.outputs.status }} == 'success' && !cancelled()
