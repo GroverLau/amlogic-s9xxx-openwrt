@@ -363,12 +363,21 @@ jobs:
           make -j$(($(nproc) + 1)) V=s || make -j1 || make -j1 V=s
           echo "status=success" >> ${GITHUB_OUTPUT}
           
-      - name: Upload Project Directory on Success
-        if: success() # 只有在前面所有步骤都成功时才执行
+      - name: Compress Project Directory
+        if: success()
+        run: |
+          echo "Starting compression..."
+          cd /builder
+          tar -czf openwrt-project-${{ github.run_id }}.tar.gz -C openwrt .
+          echo "Compression finished."
+          ls -lh *.tar.gz
+          
+      - name: Upload Compressed Project Directory
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: openwrt-project-directory-${{ github.run_id }}
-          path: /builder/openwrt/
+          name: openwrt-project-archive-${{ github.run_id }}
+          path: /builder/openwrt-project-${{ github.run_id }}.tar.gz
           retention-days: 5
           
       - name: Clear server space
